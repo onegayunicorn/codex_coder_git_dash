@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ω Tyrone — Project Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #050508;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #00f3ff, #ff00a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+    <div class="max-w-4xl w-full text-center">
+        <h1 class="text-5xl font-bold mb-4 text-gradient">Ω TYRONE DASHBOARD</h1>
+        <p class="text-gray-400 mb-12 text-lg">Unified Sovereign Platform Control Center</p>
+        
+        <div class="grid md:grid-cols-3 gap-6">
+            <a href="platform_overview.html" class="glass p-8 rounded-2xl hover:border-cyan-500/50 transition-all group">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🌐</div>
+                <h2 class="text-xl font-semibold mb-2 text-white">Platform Overview</h2>
+                <p class="text-sm text-gray-400">Comprehensive view of the Unified Sovereign Platform.</p>
+            </a>
+            
+            <a href="quantum_link.html" class="glass p-8 rounded-2xl hover:border-pink-500/50 transition-all group">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">⚛️</div>
+                <h2 class="text-xl font-semibold mb-2 text-white">Quantum Link</h2>
+                <p class="text-sm text-gray-400">Real-time status of the Quantum Link Ω-3.0.0.</p>
+            </a>
+            
+            <a href="sovereign_chat.html" class="glass p-8 rounded-2xl hover:border-purple-500/50 transition-all group">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">💬</div>
+                <h2 class="text-xl font-semibold mb-2 text-white">Sovereign Chat</h2>
+                <p class="text-sm text-gray-400">Secure AI governance and communication interface.</p>
+            </a>
+        </div>
+        
+        <div class="mt-16 text-sm text-gray-500 font-mono">
+            ONE GAY UNICORN Foundation &copy; 2026
+        </div>
+    </div>
+</body>
+</html>

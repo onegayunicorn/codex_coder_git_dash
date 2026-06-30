@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tyrone — Quantum Link Ω-3.0.0</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+ mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            neon: {
+              cyan: '#00f3ff',
+              pink: '#ff00a0',
+              violet: '#bd00ff',
+              lime: '#a3ff12',
+            },
+            void: '#050508',
+            surface: '#0a0a10',
+ }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #050508;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    /* Mesh gradient background animation */
+    .mesh-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(0, 243, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255, 0, 160, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(189, 0, 255, 0.05) 0%, transparent 60%),
+        #050508;
+      animation: meshMove 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes meshMove {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 100% 100%; }
+    }
+
+    /* Glow utilities */
+    .glow-cyan { box-shadow: 0 0 20px rgba(0, 243, 255, 0.15), 0 0 60px rgba(0, 243, 255, 0.05); }
+    .glow-pink { box-shadow: 0 0 20px rgba(255, 0, 160, 0.15), 0 0 60px rgba(255, 0, 160, 0.05); }
+    .glow-text-cyan { text-shadow: 0 0 20px rgba(0, 243, 255, 0.5); }
+    .glow-text-pink { text-shadow: 0 0 20px rgba(255, 0, 160, 0.5); }
+    .glow-ring { box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 0 30px rgba(0, 243, 255, 0.1); }
+
+    /* Glass cards */
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animated border gradient */
+    .gradient-border {
+      position: relative;
+    }
+    .gradient-border::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(0,243,255,0.4), rgba(255,0,160,0.4), rgba(189,0,255,0.4));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #050508; }
+    ::-webkit-scrollbar-thumb { background: #1f1f2e; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #2d2d44; }
+
+    /* Utilities */
+    .text-gradient {
+      background: linear-gradient(135deg, #00f3ff, #ff00a0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .text-gradient-subtle {
+      background: linear-gradient(135deg, #00f3ff, #bd00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Link hover underline */
+    .nav-link {
+      position: relative;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: #00f3ff;
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    /* Typewriter cursor */
+    .cursor::after {
+      content: '|';
+      animation: blink 1s step-start infinite;
+      color: #00f3ff;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-neon-cyan selection:text-void">
+
+  <!-- Background Canvas for particles -->
+  <div class="mesh-bg"></div>
+  <canvas id="quantumCanvas" class="fixed inset-0 z-0 opacity-40 pointer-events-none"></canvas>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#" class="font-mono text-lg font-bold tracking-tight text-white glow-text-cyan">
+        Ω TYRONE<span class="text-neon-pink">.</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+        <a href="#about" class="nav-link hover:text-white transition-colors">About</a>
+        <a href="#platform" class="nav-link hover:text-white transition-colors">Platform</a>
+        <a href="#projects" class="nav-link hover:text-white transition-colors">Projects</a>
+        <a href="#stack" class="nav-link hover:text-white transition-colors">Stack</a>
+        <a href="#contact" class="nav-link hover:text-white transition-colors">Contact</a>
+      </div>
+      <a href="https://github.com/onegayunicorn" target="_blank" rel="noopener"
+ class="px-4 py-2 rounded-full text-sm font-mono font-medium border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10 transition-colors">
+        GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="relative z-10 min-h-screen flex items-center pt-20">
+    <div class="max-w-7xl mx-auto px-6 w-full">
+      <div class="max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs font-mono text-neon-cyan mb-6 border border-neon-cyan/20">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-cyan opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-neon-cyan"></span>
+          </span>
+          Quantum Link Ω-3.0.0 Live
+        </div>
+        <h1 class="text-5xl md:text-7xl font-bold font-sans leading-tight tracking-tight mb-6">
+          Unified Sovereign <br />
+          <span class="text-gradient">Platform Architect</span>
+        </h1>
+        <p class="text-lg md:text-xl text-gray-400 leading-relaxed max-w-2xl mb-10">
+          Developer. Innovator. Founder of <span class="text-white font-medium">ONE GAY UNICORN Foundation</span>.
+          I build monorepos that span Desktop, Mobile, Cloud, and Edge — powering Bio-Entanglement pipelines,
+          Digital Twin engines, and AI governance systems.
+        </p>
+        <div class="flex flex-wrap items-center gap-4">
+          <a href="#projects" class="group inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/90 text-void font-semibold hover:bg-white transition-all">
+            Explore Ecosystem
+            <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"/></svg>
+          </a>
+          <a href="https://quantum-link-bloom.base44.app" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg glass text-white font-medium hover:bg-white/5 transition-all border border-white/10">
+            Launch Bloom
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- About -->
+  <section id="about" class="relative z-10 py-24 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid md:grid-cols-12 gap-12 items-start">
+        <div class="md:col-span-5">
+          <h2 class="text-sm font-mono text-neon-pink uppercase tracking-widest mb-3 reveal">Identity</h2>
+          <h3 class="text-3xl md:text-4xl font-bold mb-6 reveal">Bridging atoms,<br/>bits, and biology.</h3>
+ <div class="glass rounded-2xl p-6 gradient-border reveal">
+            <p class="text-gray-400 leading-relaxed mb-4">
+              I lead the engineering of <strong class="text-white">Quantum Link Ω-3.0.0</strong>,
+              a Unified Sovereign Platform engineered for maximum autonomy across devices and environments.
+            </p>
+            <p class="text-gray-400 leading-relaxed">
+              My work focuses on <span class="text-neon-cyan">Bio-Entanglement</span> pipelines,
+              <span class="text-neon-pink">Digital Twin</span> engines, and
+              <span class="text-neon-violet">AI governance</span> systems that let users own their compute.
+            </p>
+          </div>
+        </div>
+        <div class="md:col-span-7 grid gap-6">
+          <div class="glass rounded-2xl p-6 flex items-start gap-5 reveal">
+            <div class="w-10 h-10 rounded-lg bg-neon-cyan/10 flex items-center justify-center text-neon-cyan shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75v-1.5a2.25 2.25 0 00-2.25-2.25h-6a2.25 2.25 0 00-2.25 2.25v1.5m10.5 0v1.5a2.25 2.25 0 01-2.25 2.25h-6a2.25 2.25 0 01-2.25-2.25v-1.5m10.5 0h-10.5"/></svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-white mb-1">Monorepo Sovereignty</h4>
+              <p class="text-gray-400 text-sm leading-relaxed">
+                Desktop, Mobile (iOS/Android), Cloud, and Edge unified in a single deploy graph. Conflict-free GitSync with AI-driven resolution.
+              </p>
+            </div>
+          </div>
+          <div class="glass rounded-2xl p-6 flex items-start gap-5 reveal">
+            <div class="w-10 h-10 rounded-lg bg-neon-pink/10 flex items-center justify-center text-neon-pink shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L95.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.455L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.455z"/></svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-white mb-1">Bio-Entanglement & Neural Pipes</h4>
+              <p class="text-gray-400 text-sm leading-relaxed">
+                Cross-disciplinary inference pipelines that merge biometric signals with tensor graphs using TensorFlow Lite and custom quantization layers.
+              </p>
+            </div>
+          </div>
+          <div class="glass rounded-2xl p-6 flex items-start gap-5 reveal">
+            <div class="w-10 h-10 rounded-lg bg-neon-violet/10 flex items-center justify-center text-neon-violet shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+            </div>
+            <div>
+              <h4 class="font-semibold text-white mb-1">Digital Twin Engine</h4>
+              <p class="text-gray-400 text-sm leading-relaxed">
+                Real-time state synchronization and predictive modeling for autonomous environments — from cloud clusters to edge wearables.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform -->
+  <section id="platform" class="relative z-10 py-24 border-t border-white/5 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-sm font-mono text-neon-cyan uppercase tracking-widest mb-3 reveal">Quantum Link Ω-3.0.0</h2>
+        <h3 class="text-3xl md:text-5xl font-bold mb-4 reveal">One Sovereign Platform.<br/><span class="text-gradient-subtle">Every Surface.</span></h3>
+        <p class="text-gray-400 max-w-2xl mx-auto reveal">Designed for maximum autonomy — from mobile to datacenter — with AI-native governance embedded at every layer.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="glass-strong rounded-2xl p-8 gradient-border reveal text-center md:text-left">
+          <div class="w-12 h-12 rounded-full bg-neon-cyan/10 flex items-center justify-center text-neon-cyan mx-auto md:mx-0 mb-5 ring-1 ring-neon-cyan/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+          </div>
+          <h4 class="text-xl font-semibold mb-2">Mobile / Edge</h4>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            iOS & Android runtimes with TensorFlow Lite inference, on-device encryption, and local-first state management.
+          </p>
+        </div>
+        <div class="glass-strong rounded-2xl p-8 gradient-border reveal text-center md:text-left relative">
+          <div class="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-neon-pink/50 to-transparent"></div>
+          <div class="w-12 h-12 rounded-full bg-neon-pink/10 flex items-center justify-center text-neon-pink mx-auto md:mx-0 mb-5 ring-1 ring-neon-pink/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 33 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z"/></svg>
+          </div>
+          <h4 class="text-xl font-semibold mb-2">Cloud Sovereignty</h4>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            Serverless orchestration and AI governance nodes. Zero-trust architecture with distributed key management.
+          </p>
+        </div>
+        <div class="glass-strong rounded-2xl p-8 gradient-border reveal text-center md:text-left">
+          <div class="w-12 h-12 rounded-full bg-neon-violet/10 flex items-center justify-center text-neon-violet mx-auto md:mx-0 mb-5 ring-1 ring-neon-violet/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m180A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"/></svg>
+          </div>
+          <h4 class="text-xl font-semibold mb-2">Desktop / Workstation</h4>
+          <p class="text-gray-400 text-sm leading-relaxed">
+            GPU-accelerated local agents, real-time sync, and a developer-native monorepo experience built for speed.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects" class="relative z-10 py-24 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div>
+          <h2 class="text-sm font-mono text-neon-lime uppercase tracking-widest mb-3 reveal">Artifacts</h2>
+          <h3 class="text-3xl md:text-4xl font-bold reveal">Live Deployments & Repos</h3>
+        </div>
+        <a href="https://github.com/onegayunicorn" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-sm font-mono text-neon-cyan hover:text-white transition-colors reveal">
+          github.com/onegayunicorn
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"/></svg>
+        </a>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Project1 -->
+        <a href="https://quantum-link-bloom.base44.app" target="_blank" rel="noopener" class="group glass rounded-2xl p-6 hover:bg-white/5 transition-all reveal block">
+ <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-lg bg-neon-cyan/10 flex items-center justify-center text-neon-cyan ring-1 ring-neon-cyan/20 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.0488.287 8.287 0 009 9.6a8.983 8.983 0 013.362-3.678.253 8.253 0 002.9993.285z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.991 5.991 0 00-2.8622.265A5.99 5.99 0 001218z"/></svg>
+            </div>
+            <svg class="w-5 h-5 text-gray-500 group-hover:text-neon-cyan transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+          </div>
+          <h4 class="font-semibold text-white mb-2 group-hover:text-neon-cyan transition-colors">Quantum Link Bloom</h4>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Sovereign data interface for the Ω-3.0.0 platform. Real-time bloom filters and encrypted stream visualization.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">base44</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">React</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Edge</span>
+          </div>
+        </a>
+
+        <!-- Project 2 -->
+        <a href="https://spotted-nexus-audio-core.base44.app" target="_blank" rel="noopener" class="group glass rounded-2xl p-6 hover:bg-white/5 transition-all reveal block">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-lg bg-neon-pink/10 flex items-center justify-center text-neon-pink ring-1 ring-neon-pink/20 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"/></svg>
+            </div>
+            <svg class="w-5 h-5 text-gray-500 group-hover:text-neon-pink transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+          </div>
+          <h4 class="font-semibold text-white mb-2 group-hover:text-neon-pink transition-colors">Spotted Nexus Audio Core</h4>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Neural audio inference engine. Runs quantized models on-device for real-time spatial audio synthesis.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Audio ML</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">TFLite</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">WebAudio</span>
+          </div>
+        </a>
+
+        <!-- Project 3 -->
+        <a href="https://chronos-quantum-link.base44.app" target="_blank" rel="noopener" class="group glass rounded-2xl p-6 hover:bg-white/5 transition-all reveal block">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-lg bg-neon-violet/10 flex items-center justify-center text-neon-violet ring-1 ring-neon-violet/20 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M126v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <svg class="w-5 h-5 text-gray-500 group-hover:text-neon-violet transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+          </div>
+          <h4 class="font-semibold text-white mb-2 group-hover:text-neon-violet transition-colors">Chronos Quantum Link</h4>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Temporal state machine for digital twins. Versioned time-capsule snapshots with cryptographic provenance.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">State</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Crypto</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Node</span>
+          </div>
+        </a>
+
+        <!-- Project 4 -->
+        <a href="https://github.com/onegayunicorn/Omega-AI" target="_blank" rel="noopener" class="group glass rounded-2xl p-6 hover:bg-white/5 transition-all reveal block">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-lg bg-neon-lime/10 flex items-center justify-center text-neon-lime ring-1 ring-neon-lime/20 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m180h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z"/></svg>
+            </div>
+ <svg class="w-5 h-5 text-gray-500 group-hover:text-neon-lime transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+          </div>
+          <h4 class="font-semibold text-white mb-2 group-hover:text-neon-lime transition-colors">Omega AI</h4>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Core reasoning engine. Multi-agent governance with Gemini-powered inference and custom policy enforcement.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Python</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Gemini</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Agents</span>
+          </div>
+        </a>
+
+        <!-- Project 5 -->
+        <a href="https://github.com/onegayunicorn/seekee-app" target="_blank" rel="noopener" class="group glass rounded-2xl p-6 hover:bg-white/5 transition-all reveal block">
+ <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-lg bg-neon-cyan/10 flex items-center justify-center text-neon-cyan ring-1 ring-neon-cyan/20 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            </div>
+            <svg class="w-5 h-5 text-gray-500 group-hover:text-neon-cyan transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+          </div>
+          <h4 class="font-semibold text-white mb-2 group-hover:text-neon-cyan transition-colors">Seekee App</h4>
+          <p class="text-gray-400 text-sm leading-relaxed mb-4">
+            Cross-platform search and discovery layer. Local-first indexing with federated query routing.
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">TypeScript</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Mobile</span>
+            <span class="px-2 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-300 border border-white/5">Federated</span>
+          </div>
+        </a>
+
+        <!-- Project 6 -->
+        <div class="glass rounded-2xl p-6 reveal border border-dashed border-white/10 flex flex-col items-center justify-center text-center">
+          <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 mb-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </div>
+          <p class="text-sm text-gray-400">More sovereign tools coming soon.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section id="stack" class="relative z-10 py-24 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid md:grid-cols-12 gap-12">
+        <div class="md:col-span-4">
+          <h2 class="text-sm font-mono text-neon-violet uppercase tracking-widest mb-3 reveal">Infrastructure</h2>
+          <h3 class="text-3xl font-bold mb-6 reveal">Languages, runtimes, and neurons.</h3>
+          <p class="text-gray-400 leading-relaxed reveal">
+            A polyglot stack optimized for sovereign deployment — from low-level edge inference to high-dimensional cloud orchestration.
+          </p>
+        </div>
+        <div class="md:col-span-8">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-cyan"></span>
+              <span class="font-mono text-sm text-gray-200">TypeScript</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-pink"></span>
+              <span class="font-mono text-sm text-gray-200">Python</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-violet"></span>
+              <span class="font-mono text-sm text-gray-200">Swift</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-lime"></span>
+              <span class="font-mono text-sm text-gray-200">Kotlin</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-white"></span>
+              <span class="font-mono text-sm text-gray-200">SvelteKit</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-cyan"></span>
+              <span class="font-mono text-sm text-gray-200">Node</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-pink"></span>
+              <span class="font-mono text-sm text-gray-200">TensorFlow Lite</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-violet"></span>
+              <span class="font-mono text-sm text-gray-200">Gemini</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-lime"></span>
+              <span class="font-mono text-sm text-gray-200">Docker / K8s</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-white"></span>
+              <span class="font-mono text-sm text-gray-200">GitSync AI</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-cyan"></span>
+              <span class="font-mono text-sm text-gray-200">WebAssembly</span>
+            </div>
+            <div class="glass rounded-xl p-4 flex items-center gap-3 reveal">
+              <span class="w-2 h-2 rounded-full bg-neon-pink"></span>
+              <span class="font-mono text-sm text-gray-200">Base44</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact / Footer -->
+  <section id="contact" class="relative z-10 py-24 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="glass-strong rounded-3xl p-8 md:p-12 text-center max-w-4xl mx-auto gradient-border reveal">
+        <h2 class="text-3xl md:text-5xl font-bold mb-4">Build the next layer of <span class="text-gradient">sovereignty.</span></h2>
+        <p class="text-gray-400 mb-8 max-w-xl mx-auto">
+          Open to radical collaborations in AI governance, bio-digital convergence, and monorepo architecture.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4 mb-10">
+          <a href="https://github.com/onegayunicorn" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-5 py-3 rounded-lg glass text-white font-medium hover:bg-white/5 transition-all border border-white/10">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.42-1.305.763-1.605-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="https://quantum-link-bloom.base44.app" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-white/90 text-void font-semibold hover:bg-white transition-all">
+            Launch Bloom
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+          </a>
+          <a href="https://chronos-quantum-link.base44.app" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-5 py-3 rounded-lg glass text-white font-medium hover:bg-white/5 transition-all border border-white/10">
+            Chrono Link
+          </a>
+        </div>
+        <div class="text-xs font-mono text-gray-500">
+          © <span id="year"></span> Tyrone / ONE GAY UNICORN Foundation. All systems sovereign.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Year auto-update
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Intersection Observer for reveals
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Quantum particle network
+    const canvas = document.getElementById('quantumCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    const PARTICLE_COUNT = 70;
+    const CONNECTION_DIST = 120;
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.6;
+        this.vy = (Math.random() - 0.5) * 0.6;
+        this.size = Math.random() * 1.5 + 0.5;
+ }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > width) this.vx *= -1;
+        if (this.y < 0 || this.y > height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 243, 255, 0.35)';
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONNECTION_DIST) {
+            const alpha = 1 - dist / CONNECTION_DIST;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(0, 243, 255, ${alpha * 0.12})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
